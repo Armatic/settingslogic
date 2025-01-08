@@ -29,6 +29,10 @@ class Settingslogic < Hash
       @namespace ||= value
     end
 
+    def aliases(value = false)
+      @aliases ||= value
+    end
+
     def suppress_errors(value = nil)
       @suppress_errors ||= value
     end
@@ -100,7 +104,13 @@ class Settingslogic < Hash
       self.replace hash_or_file
     else
       file_contents = open(hash_or_file).read
-      hash = file_contents.empty? ? {} : YAML.load(ERB.new(file_contents).result).to_hash
+      hash = 
+        if file_contents.empty? 
+          {} 
+        else
+          YAML.load(ERB.new(file_contents).result, aliases: self.class.aliases).to_hash
+        end
+
       if self.class.namespace
         hash = hash[self.class.namespace] or return missing_key("Missing setting '#{self.class.namespace}' in #{hash_or_file}")
       end
